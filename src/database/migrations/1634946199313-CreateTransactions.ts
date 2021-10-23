@@ -1,8 +1,8 @@
 import {MigrationInterface, QueryRunner, Table, TableForeignKey} from "typeorm";
 
-export class CreateTransactions1634862501769 implements MigrationInterface {
+export class CreateTransactions1634946199313 implements MigrationInterface {
 
-    public async up(queryRunner: QueryRunner): Promise<any> {
+    public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.createTable(
             new Table({
                 name: "transactions",
@@ -15,8 +15,13 @@ export class CreateTransactions1634862501769 implements MigrationInterface {
                         default: 'uuid_generate_v4()',
                     },
                     {
+                        name: "title",
+                        type: 'varchar',
+                        isNullable: false,
+                    },
+                    {
                         name: "value",
-                        type: 'number',
+                        type: 'int',
                         isNullable: false,
                     },
                     {
@@ -28,6 +33,16 @@ export class CreateTransactions1634862501769 implements MigrationInterface {
                         name: "category_id",
                         type: 'uuid',
                         isNullable: false,
+                    },
+                    {
+                        name: 'created_at',
+                        type: 'timestamp',
+                        default: 'now()',
+                    },
+                    {
+                        name: 'updated_at',
+                        type: 'timestamp',
+                        default: 'now()',
                     },
                 ]
             })
@@ -45,7 +60,7 @@ export class CreateTransactions1634862501769 implements MigrationInterface {
         );
     }
 
-    public async down(queryRunner: QueryRunner): Promise<any> {
+    public async down(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.dropForeignKey('transactions', 'transactionCategory');
         await queryRunner.dropTable('transactions');
     }
