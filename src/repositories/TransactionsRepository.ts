@@ -1,4 +1,4 @@
-import { EntityRepository, Repository } from 'typeorm';
+import { Any, EntityRepository, Repository } from 'typeorm';
 
 import Transaction from '../models/Transaction';
 
