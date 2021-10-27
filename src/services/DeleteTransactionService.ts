@@ -16,12 +16,13 @@ class DeleteTransactionService {
     );
 
     if (!findTransactionInDatabase) {
+      console.log("aqui ó");
       throw new AppError('This transaction not find');
     }
 
-    await transactionsRepository.delete({
-      where: { id: id },
-    });
+    await transactionsRepository.delete(id);
+
+    return;
 
   }
 }

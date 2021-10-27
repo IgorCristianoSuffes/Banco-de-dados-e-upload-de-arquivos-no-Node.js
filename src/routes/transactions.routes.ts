@@ -39,13 +39,15 @@ transactionsRouter.post('/', async (request, response) => {
 transactionsRouter.delete('/:id', async (request, response) => {
   const { id } = request.params;
 
-  const deleteTransaction = getCustomRepository(DeleteTransactionService);
+  const deleteTransaction = new DeleteTransactionService();
+
+  console.log(id);
 
   await deleteTransaction.execute({
-    id,
+    id
   });
 
-
+  return response.status(204).json();
 
 });
 
