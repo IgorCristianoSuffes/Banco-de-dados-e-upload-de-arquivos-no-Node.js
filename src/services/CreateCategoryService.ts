@@ -1,19 +1,23 @@
 import { getCustomRepository } from 'typeorm';
-import Category from '../models/Category';
+import CategoryModels from '../models/Category';
 import CategoriesRepository from '../repositories/CategoriesRepository';
 
 interface Request {
-    title: string;
+    category: string;
 }
 
 class CreateCategoryService {
-    public async execute({ title }: Request): Promise<Category> {
+    public async execute({ category }: Request): Promise<CategoryModels> {
         const categoriesRepository = getCustomRepository(CategoriesRepository);
 
-        const category = categoriesRepository.create({
-            title: title,
-            
+        const title = category;
+
+        const categoryCreate = categoriesRepository.create({
+            title,
         });
+
+        await categoriesRepository.save(categoryCreate);
+        return categoryCreate;
     }
 }
 

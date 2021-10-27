@@ -18,14 +18,49 @@ class CreateTransactionService {
 
     const categoriesRepository = getCustomRepository(CategoriesRepository);
 
+    const transactionsRepository = getCustomRepository(TransactionsRepository);
+
+    const { total } = await transactionsRepository.getBalance();
+
+    if (type === "outcome" && total < value) {
+      throw new AppError("You do not have enough balance");
+    }
+
+    const createCategory = new CreateCategoryService();
+
     const categoryName = category;
 
     const findCategoryInDataBase = await categoriesRepository.findByCategoryExist(categoryName);
 
     if (!findCategoryInDataBase) {
 
-      
-    
+      const createCategoryInDatabase = await createCategory.execute({
+        category,
+      });
+
+      const transaction = await transactionsRepository.create({
+        title,
+        value,
+        type,
+        category_id: createCategoryInDatabase.id,
+      });
+
+      await transactionsRepository.save(transaction);
+
+      return transaction;
+
+    } else {
+
+      const transaction = await transactionsRepository.create({
+        title,
+        value,
+        type,
+        category_id: findCategoryInDataBase.id,
+      });
+
+      await transactionsRepository.save(transaction);
+
+      return transaction;
     }
     
   }

@@ -39,6 +39,15 @@ class TransactionsRepository extends Repository<Transaction> {
     return { income, outcome, total};
   }
 
+  public async findByTransactionExist(id: string): Promise<Transaction | null> {
+
+    const findTransaction = await this.findOne({
+        where: { id },
+    });
+
+    return findTransaction || null;
+  }
+
 }
 
 export default TransactionsRepository;
