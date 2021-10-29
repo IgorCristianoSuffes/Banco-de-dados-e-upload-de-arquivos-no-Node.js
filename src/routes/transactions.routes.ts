@@ -44,8 +44,6 @@ transactionsRouter.delete('/:id', async (request, response) => {
 
   const deleteTransaction = new DeleteTransactionService();
 
-  console.log(id);
-
   await deleteTransaction.execute({
     id
   });
@@ -55,7 +53,15 @@ transactionsRouter.delete('/:id', async (request, response) => {
 });
 
 transactionsRouter.post('/import', upload.single('csv'),async (request, response) => {
-  
+  const updateCSV = new ImportTransactionsService();
+
+  const arquivoCSV = await updateCSV.execute({
+    csvFilename: request.file.filename,
+  });
+
+  console.log('ESTOU AQUI KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK');
+  return response.json(arquivoCSV);
+
 });
 
 export default transactionsRouter;
