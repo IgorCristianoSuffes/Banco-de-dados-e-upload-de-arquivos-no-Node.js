@@ -59,7 +59,6 @@ transactionsRouter.post('/import', upload.single('csv'),async (request, response
     csvFilename: request.file.filename,
   });
 
-  console.log('ESTOU AQUI KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK');
   return response.json(arquivoCSV);
 
 });

@@ -13,10 +13,7 @@ export default {
             const fileHash = crypto.randomBytes(10).toString('hex');
             const fileName = `${fileHash}-${file.originalname}`;
 
-            const fileNameCompleto = `${path.resolve(__dirname, '..', '..', 'tmp')}${fileName}`;
-            
-
-            return callback(null, fileNameCompleto);
+            return callback(null, fileName);
         },
 
     }),
