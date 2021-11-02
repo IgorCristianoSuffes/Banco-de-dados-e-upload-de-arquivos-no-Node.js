@@ -4,55 +4,56 @@ import fs from 'fs';
 import CreateTransactionService from '../services/CreateTransactionService';
 import path from 'path';
 import uploadConfig from '../config/upload';
+import { request } from 'express';
+import CategoriesRepository from '../repositories/CategoriesRepository';
+import TransactionsRepository from '../repositories/TransactionsRepository';
+import { getCustomRepository, In } from 'typeorm';
+import Category from '../models/Category';
 
 interface Request {
   csvFilename: string;
 }
 
-interface DTOTransaction {
+interface CSVTramsaction {
   title: string;
   value: number;
   type: "income" | "outcome";
   category: string;
-  id: string;
-  created_at: Date;
-  updated_at: Date;
 }
 
 class ImportTransactionsService {
   public async execute({ csvFilename }: Request): Promise<Transaction[]> {
     const createTransaction = new CreateTransactionService();
+    const categoriesRepository = getCustomRepository(CategoriesRepository);
+    const transactionsRepository = getCustomRepository(TransactionsRepository);
 
     const CSVFilePath = path.join(uploadConfig.directory, csvFilename);
 
     const readCSVStream = await fs.createReadStream(CSVFilePath);
 
     const parseStream = csvParse({
-      from_line: 2,
-      ltrim: true,
-      rtrim: true,
+      from_line: 2
     });
 
     const parseCSV = readCSVStream.pipe(parseStream);
 
-    let lines: Transaction[] = [];
+    const transactions: CSVTramsaction[] = [];
+    const categories: string[] = [];
 
-    let transactionImportCSV: Transaction[] = [];
+    parseCSV.on('data', async line => {
 
-    parseCSV.on('data', line => {
-      lines.push(line);
-      //console.log( line[0]);
-      //console.log( line[1]);
-      //console.log( line[2]);
-      //console.log( line[3]);
-      createTransaction.execute({
-        title: line[0],
-        type: line[1],
-        value: line[2],
-        category: line[3],
-      });
+      const [title, type, value, category] = line.map((cell:string) => cell.trim());
 
-      //transactionImportCSV.push(line[0]);
+      /*createTransaction.execute({
+        title: title,
+        type: type,
+        value: value,
+        category: category,
+      });*/
+
+      categories.push(category);
+
+      transactions.push({ title, type, value, category });
 
     });
 
@@ -60,9 +61,48 @@ class ImportTransactionsService {
       parseCSV.on('end', resolve);
     });
 
-    console.log(lines);
+    const existentCategories = await categoriesRepository.find({
+      where: {
+        title: In(categories),
+      },
+    });
 
-    return lines;
+    const existentCategoriesTitles = existentCategories.map(
+      (category: Category) => category.title,
+    );
+
+    const addCategoryTitles = categories
+    .filter(category => !existentCategoriesTitles.includes(category))
+    .filter((value, index, self) => self.indexOf(value) === index);
+
+    const newCategories = categoriesRepository.create(
+      addCategoryTitles.map(title => ({
+        title,
+      })),
+    );
+
+    await categoriesRepository.save(newCategories);
+
+    const finalCategories = [...newCategories, ...existentCategories ];
+
+    const createdTransactions = transactionsRepository.create(
+      transactions.map(transaction => (
+        {
+          title: transaction.title,
+          type: transaction.type,
+          value: transaction.value,
+          category: finalCategories.find(
+            category => category.title === transaction.category,
+          ),
+        }
+      ))
+    );
+
+    await transactionsRepository.save(createdTransactions);
+
+    await fs.promises.unlink(CSVFilePath);
+
+    return createdTransactions;
 
   }
 }

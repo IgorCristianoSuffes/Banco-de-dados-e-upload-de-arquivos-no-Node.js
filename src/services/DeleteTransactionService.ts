@@ -16,7 +16,6 @@ class DeleteTransactionService {
     );
 
     if (!findTransactionInDatabase) {
-      console.log("aqui ó");
       throw new AppError('This transaction not find');
     }
 

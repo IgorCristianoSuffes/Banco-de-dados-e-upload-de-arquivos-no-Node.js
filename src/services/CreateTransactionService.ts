@@ -17,7 +17,6 @@ class CreateTransactionService {
   public async execute({ title, value, type, category }: Request): Promise<Transaction> {
 
     const categoriesRepository = getCustomRepository(CategoriesRepository);
-
     const transactionsRepository = getCustomRepository(TransactionsRepository);
 
     const { total } = await transactionsRepository.getBalance();
