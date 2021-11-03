@@ -10,29 +10,23 @@ import TransactionsRepository from '../repositories/TransactionsRepository';
 import { getCustomRepository, In } from 'typeorm';
 import Category from '../models/Category';
 
-interface Request {
-  csvFilename: string;
-}
-
 interface CSVTramsaction {
   title: string;
   value: number;
-  type: "income" | "outcome";
+  type: 'income' | 'outcome';
   category: string;
 }
 
 class ImportTransactionsService {
-  public async execute({ csvFilename }: Request): Promise<Transaction[]> {
-    const createTransaction = new CreateTransactionService();
+  public async execute(filePath: string): Promise<Transaction[]> {
+    //const createTransaction = new CreateTransactionService();
     const categoriesRepository = getCustomRepository(CategoriesRepository);
     const transactionsRepository = getCustomRepository(TransactionsRepository);
 
-    const CSVFilePath = path.join(uploadConfig.directory, csvFilename);
-
-    const readCSVStream = await fs.createReadStream(CSVFilePath);
+    const readCSVStream = await fs.createReadStream(filePath);
 
     const parseStream = csvParse({
-      from_line: 2
+      from_line: 2,
     });
 
     const parseCSV = readCSVStream.pipe(parseStream);
@@ -42,7 +36,9 @@ class ImportTransactionsService {
 
     parseCSV.on('data', async line => {
 
-      const [title, type, value, category] = line.map((cell:string) => cell.trim());
+      const [title, type, value, category] = line.map((cell:string) => 
+        cell.trim(),
+      );
 
       /*createTransaction.execute({
         title: title,
@@ -50,6 +46,8 @@ class ImportTransactionsService {
         value: value,
         category: category,
       });*/
+
+      if ( !title || !type || !value ) return;
 
       categories.push(category);
 
@@ -86,21 +84,20 @@ class ImportTransactionsService {
     const finalCategories = [...newCategories, ...existentCategories ];
 
     const createdTransactions = transactionsRepository.create(
-      transactions.map(transaction => (
-        {
-          title: transaction.title,
-          type: transaction.type,
-          value: transaction.value,
-          category: finalCategories.find(
-            category => category.title === transaction.category,
-          ),
-        }
-      ))
+      transactions.map(transaction => ({
+        title: transaction.title,
+        type: transaction.type,
+        value: transaction.value,
+        category: finalCategories.find(
+          category => category.title === transaction.category,
+        ),
+      }
+      )),
     );
 
     await transactionsRepository.save(createdTransactions);
 
-    await fs.promises.unlink(CSVFilePath);
+    await fs.promises.unlink(filePath);
 
     return createdTransactions;
 
