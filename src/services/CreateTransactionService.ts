@@ -13,8 +13,15 @@ interface Request {
   category: string;
 }
 
+interface transactionWithCategoryResponse {
+  title: string;
+  value: number;
+  type: string;
+  category: object;
+}
+
 class CreateTransactionService {
-  public async execute({ title, value, type, category }: Request): Promise<Transaction> {
+  public async execute({ title, value, type, category }: Request): Promise<transactionWithCategoryResponse> {
 
     const categoriesRepository = getCustomRepository(CategoriesRepository);
     const transactionsRepository = getCustomRepository(TransactionsRepository);
