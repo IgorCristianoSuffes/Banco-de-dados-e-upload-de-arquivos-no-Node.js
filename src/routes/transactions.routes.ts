@@ -6,6 +6,7 @@ import TransactionsRepository from '../repositories/TransactionsRepository';
 import CreateTransactionService from '../services/CreateTransactionService';
 import DeleteTransactionService from '../services/DeleteTransactionService';
 import ImportTransactionsService from '../services/ImportTransactionsService';
+import CategoriesRepository from '../repositories/CategoriesRepository';
 import uploadConfig from '../config/upload';
 
 const transactionsRouter = Router();
@@ -13,9 +14,28 @@ const upload = multer(uploadConfig);
 
 transactionsRouter.get('/', async (request, response) => {
   const transactionsRepository = getCustomRepository(TransactionsRepository);
+  const categoriesRepository = getCustomRepository(CategoriesRepository);
 
-  const transactions = await transactionsRepository.find();
+  const categories: string[] = [];
+
+  const allTransactions = await transactionsRepository.find();
   const balance = await transactionsRepository.getBalance();
+
+  const allCategories = await categoriesRepository.find();
+
+  const transactions = await allTransactions.map(allTransactions => ({
+    id: allTransactions.id,
+    title: allTransactions.title,
+    type: allTransactions.type,
+    value: allTransactions.value,
+    category_id: allTransactions.category_id,
+    created_at: allTransactions.created_at,
+    updated_at: allTransactions.updated_at,
+    Category: allCategories.find(
+      category => category.id === allTransactions.category_id,
+    ),
+  }
+  ));
 
   return response.status(200).json({
     transactions,
