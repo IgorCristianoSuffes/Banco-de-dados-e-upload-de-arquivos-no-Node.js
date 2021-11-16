@@ -31,8 +31,8 @@ transactionsRouter.get('/', async (request, response) => {
     category_id: allTransactions.category_id,
     created_at: allTransactions.created_at,
     updated_at: allTransactions.updated_at,
-    Category: allCategories.find(
-      category => category.id === allTransactions.category_id,
+    category: allCategories.find(
+      categories => categories.id === allTransactions.category_id,
     ),
   }
   ));

@@ -40,13 +40,6 @@ class ImportTransactionsService {
         cell.trim(),
       );
 
-      /*createTransaction.execute({
-        title: title,
-        type: type,
-        value: value,
-        category: category,
-      });*/
-
       if ( !title || !type || !value ) return;
 
       categories.push(category);
